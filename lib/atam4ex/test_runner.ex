@@ -12,13 +12,13 @@ defmodule ATAM4Ex.TestSuper do
 
   require Logger
 
-  def start_link(config = %ATAM4Ex{}) do
+  def start_link(%ATAM4Ex{} = config) do
     # Logger.debug(fn -> "#{__MODULE__}.start_link/1 #{inspect self()}" end)
     Supervisor.start_link(__MODULE__, [config])
   end
 
   @doc false
-  def init([config = %ATAM4Ex{}]) do
+  def init([%ATAM4Ex{} = config]) do
     # Logger.debug(fn -> "#{__MODULE__}.init/1 #{inspect self()}" end)
 
     children = [
@@ -32,18 +32,20 @@ end
 
 defmodule ATAM4Ex.TestRunner do
   @moduledoc """
-  GenServer that runs ExUnut tests periodically.
+  GenServer that runs ExUnit tests periodically.
 
-  NB this should be started from `ATAM4Ex.TestRunner` to ensure proper process start-up;
-  starting directly through `start_link/1` is not supported (due to `self()` being
-  the calling process in `init/1` rather than the child process).
+  NB this should be started from `ATAM4Ex.TestSuper` to ensure scheduling starts;
+  starting directly through `start_link/1` is not supported due to `self()` being
+  the calling process in `init/1` rather than the child `TestRunner` process:
+  you may get around this by calling `schedule_test_run/2`, and passing the `TestRunner` child
+  pid, to kick off the scheduling.
   """
 
   use GenServer
 
   require Logger
 
-  def start_link(config = %ATAM4Ex{}) do
+  def start_link(%ATAM4Ex{} = config) do
     # Logger.debug(fn -> "#{__MODULE__}.start_link/1 #{inspect self()}" end)
     GenServer.start_link(__MODULE__, [config, self()], name: __MODULE__)
   end
@@ -56,12 +58,16 @@ defmodule ATAM4Ex.TestRunner do
 
   def schedule_first_test_run(%ATAM4Ex{initial_delay_ms: ms}) do
     Logger.info(fn -> "Scheduling *initial* test run in #{ms}ms" end)
-    schedule_test_run(ms)
+    schedule_test_run(self(), ms)
   end
 
   def schedule_test_run(after_ms) do
+    schedule_test_run(self(), after_ms)
+  end
+
+  def schedule_test_run(pid, after_ms) do
     Logger.info(fn -> "Scheduling test run in #{after_ms}ms" end)
-    Process.send_after(self(), :scheduled_run, after_ms)
+    Process.send_after(pid, :scheduled_run, after_ms)
   end
 
   def handle_info(:scheduled_run, %ATAM4Ex{} = state) do
@@ -80,7 +86,7 @@ defmodule ATAM4Ex.TestRunner do
     {:noreply, %{state | last_result: summary}}
   end
 
-  def handle_info(:timeout, state = %ATAM4Ex{runner_task: {pid, _ref}}) do
+  def handle_info(:timeout, %ATAM4Ex{runner_task: {pid, _ref}} = state) do
     Logger.info(fn -> "Test run timed out in #{inspect pid}" end)
 
     Process.exit(pid, :kill)

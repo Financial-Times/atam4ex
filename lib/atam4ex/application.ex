@@ -7,7 +7,7 @@ defmodule ATAM4Ex.Application do
 
   ```
   defmodule MyAcceptanceTests do
-    use ATAM4Ex.Application, otp_app: :my_ats
+    use ATAM4Ex.Application, otp_app: :myapp_ats
   end
   ```
 
@@ -21,22 +21,22 @@ defmodule ATAM4Ex.Application do
   ```
   def application do
     [
-      extra_applications: [:logger],
-      mod: {MyAcceptanceTests, []}
+      extra_applications: [:logger, :ex_unit],
+      mod: {MyAppAcceptanceTests, []}
     ]
   end
   ```
 
   ATAM4Ex will look for configuration under the `:atam4ex` key
-  of the application of the 'using' module, or the `otp_app` key,
-  but you get the chance to modify this configuration by implementing
-  the `atam4ex_opts/1` function, wherein you can replace or modify
-  any options before returning them, e.g. you might provide them from
-  another source, or replace place-holders.
+  of the application specified by the `otp_app`, or of the 'using'
+  module if not set, but you get the chance to modify this configuration
+  by implementing the `atam4ex_opts/1` function, wherein you can replace
+  or modify any options before returning them, e.g. you might provide
+  them from another source, or replace place-holders.
 
     ```
   defmodule MyAcceptanceTests do
-    use ATAM4Ex.Application, otp_app: my_ats
+    use ATAM4Ex.Application, otp_app: myapp_ats
 
     def atam4ex_opts(opts) do
       Keyword.merge(opts, port: System.get_env("PORT") || 8080)

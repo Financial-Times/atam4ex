@@ -9,7 +9,7 @@ defmodule ATAM4Ex.Environment do
   is some compiled code and configuation (Erlang `.app` file), for ATAM4Ex it means a particular runtime configuration
   when running tests at different stages of deployment, e.g. running in varied staging, test or production
   environments, with different hosts, keys, identifiers etc. The code, including the tests, won't change (and
-  will probably be compiled for a `:prod` environmnet, but the configuration needs to match the realities of
+  will probably be compiled for a `:prod` environment, but the configuration needs to match the realities of
   the run-time environment. It's much easier to manage this using YAML files than via `config.exs` which isn't
   designed for this purpose.
 
@@ -39,11 +39,11 @@ defmodule ATAM4Ex.Environment do
     assert do_something(id)
   end
   ```
-  Alternatively, just call `ATAM4Ex.Environment.config/0` or `ATAM4Ex.Environment.config/1`
+  Alternatively, just call `ATAM4Ex.Environment.config/0` or `ATAM4Ex.Environment.config!/1`
   in a test when you need it:
   ```
   test "something", context do
-    id = ATAM4Ex.Environment.config(:id)
+    id = ATAM4Ex.Environment.config!(:id)
     assert do_something(id)
   end
   ```
