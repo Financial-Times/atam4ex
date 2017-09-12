@@ -22,9 +22,9 @@ defmodule ATAM4Ex.Mixfile do
   defp deps do
     [
       {:yaml_elixir, "~> 1.3", optional: true},
-      {:httpoison, "~> 0.12", optional: true},
+      {:poison, "~> 3.1", optional: true},
       {:plug, "~> 1.4", optional: true},
-      {:cowboy, "~> 1.0.0", optional: true},
+      {:cowboy, "~> 1.0", optional: true},
       {:credo, "~> 0.5", only: [:dev, :test]},
       {:ex_doc, "~> 0.14", only: :dev, runtime: false},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
