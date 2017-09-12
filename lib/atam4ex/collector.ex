@@ -1,4 +1,6 @@
 defmodule ATAM4Ex.Collector do
+  @moduledoc "Collects test suite results and makes them available to other components."
+
   require Logger
 
   use GenServer

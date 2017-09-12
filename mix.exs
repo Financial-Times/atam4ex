@@ -21,11 +21,14 @@ defmodule ATAM4Ex.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:poison, "~> 3.1"},
-      {:httpoison, "~> 0.12"},
-      {:yaml_elixir, "~> 1.3"},
-      {:plug, "~> 1.4"},
-      {:cowboy, "~> 1.0.0"},
+      {:yaml_elixir, "~> 1.3", optional: true},
+      {:httpoison, "~> 0.12", optional: true},
+      {:plug, "~> 1.4", optional: true},
+      {:cowboy, "~> 1.0.0", optional: true},
+      {:credo, "~> 0.5", only: [:dev, :test]},
+      {:ex_doc, "~> 0.14", only: :dev, runtime: false},
+      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:distillery, ">= 0.8.0", warn_missing: false}
     ]
   end
 end

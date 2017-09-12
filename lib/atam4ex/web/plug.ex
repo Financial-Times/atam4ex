@@ -1,4 +1,6 @@
 defmodule ATAM4Ex.ATAM4JCompatiblePlug do
+  @moduledoc "Plug to serve test results in ATAM4J compatible JSON format."
+
   @behaviour Plug
 
   import Plug.Conn

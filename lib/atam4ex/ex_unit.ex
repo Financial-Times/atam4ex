@@ -10,13 +10,12 @@ defmodule ATAM4Ex.ExUnit do
   are not settable.
   """
 
-  @type summary :: %{duration_µs: non_neg_integer, failures: non_neg_integer, skipped: non_neg_integer, total: non_neg_integer}
+  @type summary :: %{duration_us: non_neg_integer, failures: non_neg_integer, skipped: non_neg_integer, total: non_neg_integer}
 
   @doc "dynamically require tests from `*_test.exs` files and return tuple with async and sync tests"
   @spec init(opts :: Keyword.t) :: {async_cases :: [module], sync_cases :: [module]}
   def init(opts) do
     opts = Keyword.merge(opts, [autorun: false, capture_log: true, formatters: [ExUnit.CLIFormatter, ATAM4Ex.Formatter]])
-    IO.inspect({:exunit_opts, opts})
     ExUnit.start(opts) # persist configuration, but don't load or run tests
 
     test_dir = opts[:test_dir] || "test"
@@ -30,10 +29,10 @@ defmodule ATAM4Ex.ExUnit do
     install_sync_cases(sync_cases)
     install_async_cases(async_cases)
     ExUnit.Server.cases_loaded()
-    {duration_µs, summary} = :timer.tc(fn ->
+    {duration_us, summary} = :timer.tc(fn ->
       ExUnit.run
     end)
-    Map.put(summary, :duration_µs, duration_µs)
+    Map.put(summary, :duration_us, duration_us)
   end
 
   @doc """

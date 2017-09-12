@@ -93,7 +93,6 @@ defmodule ATAM4Ex.Environment do
     path = Path.join([env_dir, to_string(environment_id) <> ".yaml"])
     env_config = ATAM4Ex.YAML.read!(path)
 
-    # TODO replace environment variables in result (replace string keys with atoms?)
     Application.put_env(:atam4ex, :environment_config, env_config)
     Application.put_env(:atam4ex, :environment_id, environment_id)
 
