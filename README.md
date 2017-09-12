@@ -156,6 +156,27 @@ def deps do
 end
 ```
 
+### Dependencies
+
+Most of ATAM4Ex's dependencies are **optional**; if you want to use the web-server, 
+or parse YAML, you'll need to add explicit dependencies to your app's `mix.exs` file.
+
+ATAM4Ex needs `cowboy`, `plug` and `poison` for running its 'built-in' web-server, and 
+`yaml_elixir` for `ATAM4Ex.Environment`. If you aren't using one or both of those components, 
+then you can leave the corresponding deps out.
+
+Take a look at this project's `mix.exs` for compatible versions of the optional compoments, 
+but as of the time of writing:
+```
+# for ATAM4Ex.Environment
+{:yaml_elixir, "~> 1.3"},
+
+# for http server (ATAM4Ex.Web etc.)
+{:poison, "~> 3.1"},
+{:plug, "~> 1.4"},
+{:cowboy, "~> 1.0"},
+```
+
 ## Building a Release with Distillery
 
 The point of ATAM is that your tests run continuously somewhere; for this purpose you probably
