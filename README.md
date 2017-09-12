@@ -46,8 +46,20 @@ def application do
 end
 ```
 
-Once the application is running, test results can then be obtained by calling `ATAM4Ex.Collector.results/0` (or `ATAM4Ex.Collector.results/1`). Test results will also
-be reported, as normal, to the console, so details of failures etc. appear in the application logs.
+You can then start your application using `mix` with (`--no-halt` keeps the application running to run the tests):
+```
+$ mix run --no-halt
+```
+
+or in IEx with:
+```
+iex -S mix
+```
+
+Test results will also be reported, as normal, to the console, so details of failures etc. appear in the application logs.
+
+Test results can also be obtained programatically by calling `ATAM4Ex.Collector.results/0` (or `ATAM4Ex.Collector.results/1`),
+which is what the Web Server does.
 
 ## Default Web server
 
