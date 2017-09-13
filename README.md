@@ -10,7 +10,7 @@ which makes the acceptance tests more robust, avoiding memory leaks and stateful
 ## Synopsis
 
 Tests are written as standard [ExUnit](https://hexdocs.pm/ex_unit/ExUnit.html) tests, and
-thus may be run stand-alone with `mix test`, as well as under the ATAM4Ex supervisor.
+thus may be run stand-alone with `mix test --no-start`, as well as under the ATAM4Ex supervisor.
 
 An application which is host to the acceptance tests starts the ATAM4Ex supervisor tree, 
 optionally with a Cowboy/Plug web-server, either using `ATAM4Ex.init/1` and `ATAM4Ex.start_link/1`,
@@ -41,12 +41,12 @@ The application can then be registered in `mix.exs` so that it starts when the B
 def application do
 [
     mod: {MyAppATs, []},
-    extra_applications: [:logger, :ex_unit]
+    extra_applications: [:logger]
 ]
 end
 ```
 
-> Note the `extra_applications` dependency on `ex_unit` - this is important for releases, else `ExUnit` modules will not be included; see below.
+> Note that ATAM4Ex's own `mix.exs` has an `extra_applications` dependency on `ex_unit` - this is important for releases, else the `ExUnit` modules will not be included, since they are normally only for testing in `:test`. You don't need to put anything in your app's `mix.exs`, the release mechanism (e.g. [Distillery](https://github.com/bitwalker/distillery)) should take care of it.
 
 You can then start your application using `mix` with (`--no-halt` keeps the application running to run the tests):
 ```
@@ -180,22 +180,11 @@ but as of the time of writing:
 ## Building a Release with Distillery
 
 The point of ATAM is that your tests run continuously somewhere; for this purpose you probably
-want to make a stand-alone release, rather than relying on `mix`. 
+want to make a stand-alone release, rather than relying on `mix run --no-halt`. 
 
 Here's how:
 
-1. Ensure that your test application's `mix.exs` lists `:ex_unit` as an `extra_applications` entry, otherwise the `ExUnit` BEAM modules will be missing from your release, and your app will fail
-on start-up complaining of missing ExUnit modules:
-```elixir
-def application do
-[
-    mod: {MyAppATs, []},
-    extra_applications: [:logger, :ex_unit]
-]
-end
-``` 
-
-2. You need to copy your tests and environment files to the release, else it won't be able to find them. Assuming you are using
+1. You need to copy your tests and environment files to the release, else it won't be able to find them. Assuming you are using
 the default `test` and `env` directories, add `set overlays` entries to your `rel/config.exs`:
 
 ```elixir
@@ -212,4 +201,5 @@ end
 
 This copies the `test` and `env` dirs to the `releases` directory, see [Overlays](https://hexdocs.pm/distillery/overlays.html#content) and [Configuration](https://hexdocs.pm/distillery/configuration.html) in the [Distillery](https://hexdocs.pm/distillery) docs.
 
-That's it. Otherwise it's a standard Elixir application.
+
+That's it. Otherwise it's a standard Elixir application release.
