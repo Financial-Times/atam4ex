@@ -3,6 +3,8 @@ defmodule ATAM4Ex.YAML do
 
   @doc "Read and post-process YAML file."
   def read!(path) do
+    Application.ensure_all_started(:yamerl)
+
     path
     |> YamlElixir.read_from_file()
     |> walk()
