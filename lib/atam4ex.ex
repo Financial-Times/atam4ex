@@ -32,9 +32,6 @@ defmodule ATAM4Ex do
   ]
 
   def init(opts \\ []) do
-
-    {:ok, _} = Application.ensure_all_started(:yaml_elixir)
-
     ex_unit_init_options = ex_unit_init_options(opts)
 
     runner_opts = parse_opts(opts)
