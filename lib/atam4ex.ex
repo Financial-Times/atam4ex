@@ -53,7 +53,16 @@ defmodule ATAM4Ex do
     )
   end
 
-  def start_link(config = %ATAM4Ex{}) do
+  @doc """
+  Starts the ATAM4Ex supervisor tree.
+
+  ## Parameters
+  * `config` - a config struct as returned by `ATAM4Ex.init/1`.
+  * `callback` (optional) - a module containing a `child_specs/1` callback function,
+  or a 1-arg anonymous function, or `{m, f, a}` tuple; this function will be called
+  with the list of supervisor specs, and can amend this list.
+  """
+  def start_link(config = %ATAM4Ex{}, callback \\ nil) do
     import Supervisor.Spec, warn: false
 
     web_server_spec = ATAM4Ex.Web.server_spec(config.server)
@@ -62,7 +71,19 @@ defmodule ATAM4Ex do
       supervisor(ATAM4Ex.TestSuper, [config]),
       worker(ATAM4Ex.Collector, [])
     ]
+
+    children = do_child_specs_callback(callback, children)
+
     Supervisor.start_link(children, strategy: :one_for_one)
+  end
+
+  defp do_child_specs_callback(callback, children) do
+    case callback do
+      fun when is_function(fun, 1) -> apply(fun, [children])
+      mod when is_atom(callback) and not is_nil(callback) -> apply(mod, :child_specs, [children])
+      {mod, fun, args} -> apply(mod, fun, children ++ args)
+      _ -> children
+    end
   end
 
   defp parse_opts(opts) do

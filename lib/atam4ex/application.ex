@@ -45,24 +45,31 @@ defmodule ATAM4Ex.Application do
   ```
   """
 
-  defmacro __using__(opts) do
+  defmacro __using__(use_opts) do
     quote do
       use Application
 
       def start(_type, _args) do
-        app = unquote(opts)[:otp_app] || Application.get_application(__MODULE__)
-        opts = Application.get_env(app, :atam4ex) || []
-        opts = atam4ex_opts(opts)
+        app = unquote(use_opts)[:otp_app] || Application.get_application(__MODULE__)
 
-        config = ATAM4Ex.init(opts)
-        ATAM4Ex.start_link(config)
+        init_opts = Application.get_env(app, :atam4ex) || []
+        init_opts = atam4ex_opts(init_opts)
+
+        callback = unquote(use_opts)[:callback] || __MODULE__
+
+        config = ATAM4Ex.init(init_opts)
+        ATAM4Ex.start_link(config, callback)
+      end
+
+      def child_specs(children) do
+        children
       end
 
       def atam4ex_opts(opts) do
         opts
       end
 
-      defoverridable [atam4ex_opts: 1]
+      defoverridable [atam4ex_opts: 1, child_specs: 1]
     end
   end
 end
