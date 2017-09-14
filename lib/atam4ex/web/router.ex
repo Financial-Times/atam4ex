@@ -1,4 +1,9 @@
 defmodule ATAM4Ex.Router do
+  @moduledoc """
+  Basic router that simply forwards `/tests` to `ATAM4Ex.ATAM4JCompatiblePlug`, and
+  sets categories to `:critical`.
+  """
+
   use Plug.Router
 
   plug :match

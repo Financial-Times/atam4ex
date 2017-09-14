@@ -12,11 +12,11 @@ defmodule ATAM4Ex.Web do
   returns a server spec, passing all options to `Plug.Adapters.Cowboy`,
   except:
 
-  `:scheme` - `:http` or `:https` chooses the plain or TLS listener.
-  `:router` - the `Plug.Router` to use, default `ATAM4Ex.Router`.
-  `:router_opts` - options passed to router's `init/1` function; default `[]`.
+  * `:scheme` - `:http` or `:https` chooses the plain or TLS listener.
+  * `:router` - the `Plug.Router` to use, default `ATAM4Ex.Router`.
+  * `:router_opts` - options passed to router's `init/1` function; default `[]`.
   """
-  @spec server_spec(opts :: list | false) :: list
+  @spec server_spec(opts :: Keyword.t | false) :: list
   def server_spec(opts)
 
   def server_spec(false), do: []

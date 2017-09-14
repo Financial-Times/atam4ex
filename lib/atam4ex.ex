@@ -4,18 +4,18 @@ defmodule ATAM4Ex do
 
   # Synopsis
   ```
-  opts = [period_ms: 30_000, timeout_ms: 120_000, ex_unit: [timeout: 10_000]]
+  opts = [period_ms: 30_000, timeout_ms: 120_000, ex_unit: [timeout: 10_000], server: [port: 8081, router: MyRouter]]
   config = ATAM4Ex.init(opts)
   {:ok, pid} = ATAM4Ex.start_link(config)
   ```
 
   ## Options
-  `ex_unit` - (`Keyword.t`) options for `ExUnit`
-  `initial_delay_ms` - delay betwen starting and running the suite for the first time, default `5_000` ms
-  `period_ms` - period between test suite runs, default `60_000` ms
-  `timeout_ms` - timeout for entire test suite, default `60_000` ms
-  `test_dir` - alternative test directory, default `test` relative to cwd.
-  `server` - options for `ATAM4Ex.Web`, default `[port: 8080]`. Set to `false` to disable web-server.
+  * `initial_delay_ms` - delay between starting ATAM4Ex, and running the suite for the first time, default `5_000` ms
+  * `period_ms` - period between test suite runs, default `60_000` ms
+  * `timeout_ms` - timeout for entire test suite, default `60_000` ms
+  * `test_dir` - alternative directory from which to load `*_test.exs` files, default `test` relative to cwd.
+  * `ex_unit` - (`Keyword.t`) options for `ExUnit`.
+  * `server` (`Keyword.t`) - options for `ATAM4Ex.Web`, default `[port: 8080]`. Set to `false` to disable web-server.
   """
 
   require Logger

@@ -1,5 +1,14 @@
 defmodule ATAM4Ex.ATAM4JCompatiblePlug do
-  @moduledoc "Plug to serve test results in ATAM4J compatible JSON format."
+  @moduledoc """
+  Plug to serve test results in ATAM4J compatible JSON format.
+
+  ## Endpoints
+  * `/tests` -  results for all tests.
+  * `/tests/:category` - results for given category, if supported.
+
+  Categories must be configured in `init/1`; the `:default` category is
+  always added to the list.
+  """
 
   @behaviour Plug
 
