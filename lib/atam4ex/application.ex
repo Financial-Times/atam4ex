@@ -44,7 +44,7 @@ defmodule ATAM4Ex.Application do
     def atam4ex_opts(opts) do
       # set the server port, unless disabled
       if not opts[:server] == false do
-        port = Integer.parse(System.get_env("PORT") || "9090")
+        {port, _} = Integer.parse(System.get_env("PORT") || "9090")
         Keyword.update(opts, :server, [port: port], &(Keyword.merge(&1, [port: port])))
       else
         opts

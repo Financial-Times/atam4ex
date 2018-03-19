@@ -13,22 +13,22 @@ defmodule ATAM4Ex.ExUnit do
   @type summary :: %{duration_us: non_neg_integer, failures: non_neg_integer, skipped: non_neg_integer, total: non_neg_integer}
 
   @doc "dynamically require tests from `*_test.exs` files and return tuple with async and sync tests"
-  @spec init(opts :: Keyword.t) :: {async_cases :: [module], sync_cases :: [module]}
+  @spec init(opts :: Keyword.t) :: {async_modules :: [module], sync_modules :: [module]}
   def init(opts) do
     opts = Keyword.merge(opts, [autorun: false, capture_log: true, formatters: [ExUnit.CLIFormatter, ATAM4Ex.Formatter]])
     ExUnit.start(opts) # persist configuration, but don't load or run tests
 
     test_dir = opts[:test_dir] || "test"
 
-    load_tests(test_dir) # gets modules/test names for all loaded cases
+    load_tests(test_dir) # gets modules/test names for all loaded test modules
   end
 
-  @doc "run the given test cases using `ExUnit`, returning the run summary."
+  @doc "run the given test modules using `ExUnit`, returning the run summary."
   @spec run(async_tests :: [module], sync_tests :: [module]) :: summary
-  def run(async_cases, sync_cases) do
-    install_sync_cases(sync_cases)
-    install_async_cases(async_cases)
-    ExUnit.Server.cases_loaded()
+  def run(async_modules, sync_modules) do
+    install_sync_modules(sync_modules)
+    install_async_modules(async_modules)
+    modules_loaded()
     {duration_us, summary} = :timer.tc(fn ->
       ExUnit.run
     end)
@@ -38,14 +38,14 @@ defmodule ATAM4Ex.ExUnit do
   @doc """
   Dynamically requires the `*_test.exs` files from the given directory.
 
-  This causes the test cases to be loaded into the `ExUnit` server, where
+  This causes the test modules to be loaded into the `ExUnit` server, where
   we retrieve them for our repeated runs.
 
   When writing tests that we want to run once from the command line using `mix test`,
   `mix` first loads the standard `test_helper.exs` to boot-strap `ExUnit.run`, but
   when running under ATAM4Ex, we call `ExUnit.run` outselves, in `autorun: false`
-  mode, so it starts the server that collects test cases, but doesn't actually run
-  any test cases. We then get the collected test cases from the server and
+  mode, so it starts the server that collects test modules, but doesn't actually run
+  any test modules. We then get the collected test modules from the server and
   return them for our repeated runs.
 
   If present, `atam4ex_test_helper.exs` will be loaded in preference to the default
@@ -70,12 +70,12 @@ defmodule ATAM4Ex.ExUnit do
 
     Kernel.ParallelRequire.files(tests)
 
-    ExUnit.Server.cases_loaded()
+    modules_loaded()
 
-    async_cases = collect_async_cases()
-    sync_cases = ExUnit.Server.take_sync_cases() || []
+    async_modules = collect_async_modules()
+    sync_modules = take_sync_modules() || []
 
-    {async_cases, sync_cases}
+    {async_modules, sync_modules}
   end
 
   defp require_test_helper(test_dir) do
@@ -88,10 +88,10 @@ defmodule ATAM4Ex.ExUnit do
     end
   end
 
-  defp collect_async_cases do
+  defp collect_async_modules do
     [1]
     |> Stream.cycle()
-    |> Stream.map(&ExUnit.Server.take_async_cases/1)
+    |> Stream.map(&take_async_modules/1)
     |> Stream.take_while(fn
       nil -> false
       [] -> false
@@ -100,11 +100,41 @@ defmodule ATAM4Ex.ExUnit do
     |> Enum.to_list()
   end
 
-  defp install_async_cases(cases) do
-    Enum.each(cases, &ExUnit.Server.add_async_case/1)
-  end
-  defp install_sync_cases(cases) do
-    Enum.each(cases, &ExUnit.Server.add_sync_case/1)
+
+  if Version.match?(System.version(), ">= 1.6.0") do
+    # Elixir >= 1.6.0
+    defp modules_loaded() do
+      ExUnit.Server.modules_loaded()
+    end
+    defp take_sync_modules() do
+      ExUnit.Server.take_sync_modules()
+    end
+    defp take_async_modules(count) do
+      ExUnit.Server.take_async_modules(count)
+    end
+    defp install_async_modules(modules) do
+      Enum.each(modules, &ExUnit.Server.add_async_module/1)
+    end
+    defp install_sync_modules(modules) do
+      Enum.each(modules, &ExUnit.Server.add_sync_module/1)
+    end
+  else
+    # Elixir < 1.6.0
+    defp modules_loaded() do
+      ExUnit.Server.cases_loaded()
+    end
+    defp take_sync_modules() do
+      ExUnit.Server.take_async_cases()
+    end
+    defp take_async_modules() do
+      ExUnit.Server.take_async_cases(count)
+    end
+    defp install_async_modules(modules) do
+      Enum.each(modules, &ExUnit.Server.add_async_case/1)
+    end
+    defp install_sync_modules(modules) do
+      Enum.each(modules, &ExUnit.Server.add_sync_case/1)
+    end
   end
 
 end
