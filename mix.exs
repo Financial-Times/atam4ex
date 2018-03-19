@@ -5,7 +5,7 @@ defmodule ATAM4Ex.Mixfile do
     [
       app: :atam4ex,
       version: "0.1.1",
-      elixir: "~> 1.5 or ~> 1.6",
+      elixir: "~> 1.5",
       start_permanent: Mix.env == :prod,
       deps: deps()
     ]
