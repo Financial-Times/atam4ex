@@ -126,7 +126,7 @@ defmodule ATAM4Ex.ExUnit do
     defp take_sync_modules() do
       ExUnit.Server.take_sync_cases()
     end
-    defp take_async_modules() do
+    defp take_async_modules(count) do
       ExUnit.Server.take_async_cases(count)
     end
     defp install_async_modules(modules) do
