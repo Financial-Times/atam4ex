@@ -124,7 +124,7 @@ The `ATAM4Ex.Environment` module can load YAML files, by default from an `env` d
 
 ```elixir
 # load environment specified in APP_ENV, or local
-ATAM4Ex.Environment.load_environemnt!(System.get_env("APP_ENV") || :local)
+ATAM4Ex.Environment.load_environment!(System.get_env("APP_ENV") || :local)
 ExUnit.start
 ```
 
