@@ -30,7 +30,7 @@ config :myapp_at, :atam4ex,
     initial_delay_ms: 10_000,
     period_ms: 30_000,
     timeout_ms: 120_000,
-    ex_unit: [max_cases: 2, timeout: 5_000]
+    ex_unit: [max_cases: 2, timeout: 5_000, exlude: [category: :local]]
 ```
 
 For details of all the configuration options, see the `ATAM4Ex` module.

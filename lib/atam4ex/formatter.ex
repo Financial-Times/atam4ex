@@ -16,6 +16,7 @@ defmodule ATAM4Ex.Formatter do
       test_counter: %{},
       failure_counter: 0,
       skipped_counter: 0,
+      excluded_counter: 0,
       invalid_counter: 0,
       results: %{},
       collector: opts[:collector] || ATAM4Ex.Collector
@@ -30,6 +31,7 @@ defmodule ATAM4Ex.Formatter do
       tests: state.test_counter,
       failed: state.failure_counter,
       skipped: state.skipped_counter,
+      excluded: state.excluded_counter,
       invalid: state.invalid_counter
     }
     state.collector.suite_finished(run_us, counter, state.results)
@@ -42,7 +44,7 @@ defmodule ATAM4Ex.Formatter do
     {:noreply, state}
   end
 
-  def handle_cast({:test_finished, %ExUnit.Test{state: {:skip, _}} = test}, state) do
+  def handle_cast({:test_finished, %ExUnit.Test{state: {skipped, _}} = test}, state) when skipped in [:skip, :skipped] do
     Logger.debug(fn -> "test SKIPPED #{test.name}" end)
     state = record_test(state, test)
 
@@ -63,8 +65,15 @@ defmodule ATAM4Ex.Formatter do
     {:noreply, %{state | failure_counter: state.failure_counter + 1}}
   end
 
+  def handle_cast({:test_finished, %ExUnit.Test{state: {:excluded, _}} = test}, state) do
+    Logger.debug(fn -> "test EXCLUDED #{test.name} excluded" end)
+    state = record_test(state, test)
+
+    {:noreply, %{state | excluded_counter: state.excluded_counter + 1}}
+  end
+
   def handle_cast(_msg, state) do
-    # Logger.info(fn -> "handle_cast: Received #{inspect msg}" end)
+    # Logger.debug(fn -> "handle_cast: Received #{inspect msg}" end)
     {:noreply, state}
   end
 
@@ -81,6 +90,10 @@ defmodule ATAM4Ex.Formatter do
   end
 
   defp update_test_counter(test_counter, %{tags: %{type: type}}) do
+    Map.update(test_counter, type, 1, &(&1 + 1))
+  end
+
+  defp update_test_counter(test_counter, %{tags: %{test_type: type}}) do
     Map.update(test_counter, type, 1, &(&1 + 1))
   end
 end

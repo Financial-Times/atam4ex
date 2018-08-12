@@ -12,16 +12,21 @@ defmodule ATAM4Ex.Collector do
   @type t :: %ATAM4Ex.Collector{results: map, status: status}
 
 
-  def suite_finished(run_us, counter, results) do
-    GenServer.cast(__MODULE__, {:suite_finished, run_us, counter, results})
-  end
-
+  @doc "all results"
+  @spec results() :: __MODULE__.t
   def results() do
     GenServer.call(__MODULE__, :results)
   end
 
+  @doc "results for a given category"
+  @spec results(category :: atom()) :: __MODULE__.t
   def results(category) do
     GenServer.call(__MODULE__, {:results, category})
+  end
+
+  @doc false
+  def suite_finished(run_us, counter, results) do
+    GenServer.cast(__MODULE__, {:suite_finished, run_us, counter, results})
   end
 
   def start_link() do
@@ -53,9 +58,12 @@ defmodule ATAM4Ex.Collector do
   end
 
   def handle_call({:results, category}, _from, state) do
-    tests = Enum.filter(state.results, fn
+    tests =
+      state.results
+      |> Enum.filter(fn
         {_key, test} -> test.tags[:category] === category
-    end)
+      end)
+      |> Map.new()
 
     has_failures = Enum.any?(tests, fn
       {_key, %{state: {:failed, _}}} -> true
