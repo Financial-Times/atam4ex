@@ -40,9 +40,9 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
   end
 
   def send_category(conn, category) do
-    results = ATAM4Ex.Collector.results(String.to_atom(category))
+    results = ATAM4Ex.Collector.results(String.to_existing_atom(category))
     case results do
-      %{state: :too_early} ->
+      %{status: :too_early} ->
         send_too_early(conn)
       _ ->
         send_json(conn, format(results))
@@ -52,7 +52,7 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
   def send_all(conn) do
     results = ATAM4Ex.Collector.results()
     case results do
-      %{state: :too_early} ->
+      %{status: :too_early} ->
         send_too_early(conn)
       _ ->
         send_json(conn, format(results))

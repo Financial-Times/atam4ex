@@ -14,7 +14,7 @@ defmodule ATAM4Ex do
   * `period_ms` - period between test suite runs, default `60_000` ms
   * `timeout_ms` - timeout for entire test suite, default `60_000` ms
   * `test_dir` - alternative directory from which to load `*_test.exs` files, default `test` relative to cwd.
-  * `ex_unit` - (`Keyword.t`) options for `ExUnit`.
+  * `ex_unit` - (`Keyword.t`) options to be passed to `ExUnit.configure/1`.
   * `server` (`Keyword.t`) - options for `ATAM4Ex.Web`, default `[port: 8080]`. Set to `false` to disable web-server.
   """
 
