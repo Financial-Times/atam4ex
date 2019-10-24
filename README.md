@@ -10,7 +10,9 @@ which makes the acceptance tests more robust, avoiding memory leaks and stateful
 ## Synopsis
 
 Tests are written as standard [ExUnit](https://hexdocs.pm/ex_unit/ExUnit.html) tests, and
-thus may be run stand-alone with `mix test --no-start`, as well as under the ATAM4Ex supervisor.
+thus may be run stand-alone with `mix test`, as well as under the ATAM4Ex supervisor. 
+
+> Tests are loaded from the standard `test` directory by default (and must be match pattern `*_test.exs`).
 
 An application which is host to the acceptance tests starts the ATAM4Ex supervisor tree, 
 optionally with a Cowboy/Plug web-server, either using `ATAM4Ex.init/1` and `ATAM4Ex.start_link/1`,
@@ -48,7 +50,8 @@ end
 
 > Note that ATAM4Ex's own `mix.exs` has an `extra_applications` dependency on `ex_unit` - this is important for releases, else the `ExUnit` modules will not be included, since they are normally only for testing in `:test`. You don't need to put anything in your app's `mix.exs`, the release mechanism (e.g. [Distillery](https://github.com/bitwalker/distillery)) should take care of it.
 
-You can then start your application using `mix` with (`--no-halt` keeps the application running to run the tests):
+You can then start your application using `mix` with (`--no-halt` keeps the application running long enough to 
+schedule the tests):
 ```
 $ mix run --no-halt
 ```
@@ -58,10 +61,10 @@ or in IEx with:
 iex -S mix
 ```
 
-Test results will also be reported, as normal, to the console, so details of failures etc. appear in the application logs.
+Test results will be reported, as normal, to the console, so details of failures etc. appear in the application logs.
 
-Test results can also be obtained programatically by calling `ATAM4Ex.Collector.results/0` (or `ATAM4Ex.Collector.results/1`),
-which is what the Web Server does.
+Test results can also be obtained programatically by calling `ATAM4Ex.Collector.results/0` 
+(or `ATAM4Ex.Collector.results/1`), which is what the Web Server does.
 
 ## Default Web server
 
@@ -74,7 +77,7 @@ config :myapp_at, :atam4ex,
   server: [port: 8443, scheme: :https, certfile: "/path/to/certfile", keyfile: "/path/to/keyfile"]
 ```
 
-> See `Plug.Adapters.Cowboy` module for details of all the options, including those for running under TLS.
+> See `Plug.Cowboy` module for details of all the options, including those for running under TLS.
 
 The server responds to requests on the `/tests` path.
 
@@ -116,23 +119,24 @@ will be placed in the `:default` category.
 ## Test Environment
 
 ATAM4Ex supports loading a test environment (AKA configuration) via YAML files. This optional
-feature allows different configurations to be used for various run-time environments, e.g. host names, and api-keys are likely to be different in staging and production environments, and is more flexible
+feature allows different configurations to be used for various run-time environments, e.g. host names, 
+and api-keys are likely to be different in staging and production environments, and is more flexible
 than using `config.exs` (which is intended for build environments, not deployment environments).
 
 The `ATAM4Ex.Environment` module can load YAML files, by default from an `env` directory 
-(which should be packaged with your app). Usually you would do this in your `test_helper.exs` file:
+(which should be packaged with your app release). Usually you would do this in your `test_helper.exs` file:
 
 ```elixir
-# load environment specified in APP_ENV, or local
-ATAM4Ex.Environment.load_environment!(System.get_env("APP_ENV") || :local)
+# load environment specified in "${APP_ENV}.yaml", or "development.yaml"
+ATAM4Ex.Environment.load_environment!(System.get_env("APP_ENV") || :development)
 ExUnit.start
 ```
 
 Tests can then access the environment settings via `ATAM4Ex.Environment.config/0` (or `config/1`) at any point in their execution, e.g. during `setup` to provide a `context`, or during the test itself.
 
 
-The YAML parser provides a mechanism for resolving system environment variables via `:env` keys, e.g.
-if your `env/production.yaml` file contained:
+The YAML parser provides a mechanism for resolving system environment variables 
+via `:env` keys, e.g. if your `env/production.yaml` file contained:
 
 ```yaml
 system_url: https://my-system-prod
@@ -140,7 +144,7 @@ system_api_key:
     :env: SYSTEM_API_KEY
 ```
 
-`ATAM4Ex.Environment.config(:system_api_key)` will be resolved at load time to be the value of the `SYSTEM_API_KEY` environment variable, replacing it's original map structure.
+`ATAM4Ex.Environment.config(:system_api_key)` will be resolved at load time to be the value of the `SYSTEM_API_KEY` environment variable, replacing its original map structure.
 
 > Note that for convenience, map keys in the YAML will be converted to atoms.
 
@@ -151,7 +155,7 @@ For the bleeding edge, latest and most unstable version, add to your `mix.exs` f
 ```elixir
 def deps do
   [
-    {:atam4ex, gitub: "Financial-Times/atam4ex"}
+    {:atam4ex, github: "Financial-Times/atam4ex"}
   ]
 end
 ```
