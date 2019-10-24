@@ -23,8 +23,7 @@ defmodule ATAM4Ex.Mixfile do
     [
       {:yaml_elixir, "~> 2.4", optional: true},
       {:jason, "~> 1.0", optional: true},
-      {:plug, "~> 1.4", optional: true},
-      {:cowboy, "~> 1.0", optional: true},
+      {:plug_cowboy, "~> 2.0", optional: true},
       {:credo, "~> 0.5", only: [:dev, :test]},
       {:ex_doc, "~> 0.14", only: :dev, runtime: false},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},

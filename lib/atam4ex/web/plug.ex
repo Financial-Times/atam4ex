@@ -1,6 +1,6 @@
 defmodule ATAM4Ex.ATAM4JCompatiblePlug do
   @moduledoc """
-  Plug to serve test results in ATAM4J compatible JSON format.
+  Plug to serve test results in [ATAM4J](https://github.com/atam4j/atam4j) compatible JSON format.
 
   ## Endpoints
   * `/tests` -  results for all tests.
@@ -8,6 +8,28 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
 
   Categories must be configured in `init/1`; the `:default` category is
   always added to the list.
+
+  The serialization format looks like the following:
+
+  ```json
+  {
+    "tests": [
+      {
+        "passed": false,
+        "testCategory": "critical",
+        "testClass": "MyATAM.SomeTest",
+        "testName": "test_a"
+      }
+    ],
+    "status": "FAILURES"
+  }
+  ```
+
+  The `status` property will be:
+  * `FAILURES` if there are any test failures.
+  * `ALL_OK` if all tests pass.
+  * `TOO_EARLY` if tests haven't run to completion yet.
+
   """
 
   @behaviour Plug

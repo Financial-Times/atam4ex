@@ -2,12 +2,6 @@ defmodule ATAM4Ex.ExUnit do
   @moduledoc """
   Integration with `ExUnit.
 
-  ## Parameters
-  `opts` - Keyword list of options:
-  * test_dir - directory to load tests from, default "test".
-
-  For other options, see ExUnit, however, `autorun`, `capture_log` and `formatters`
-  are not settable.
   """
 
   @type summary :: %{
@@ -17,7 +11,20 @@ defmodule ATAM4Ex.ExUnit do
           total: non_neg_integer
         }
 
-  @doc "dynamically require tests from `*_test.exs` files and return tuple with async and sync tests"
+  @doc """
+  Dynamically require tests from `*_test.exs` files and return tuple with async and sync tests
+
+  Must be run before `ExUnit.start()`.
+
+  ## Parameters
+  `opts` - Keyword list of options:
+  * test_dir - directory to load tests from, default "test".
+
+  For other options, see `ExUnit.configure/1`; not that `autorun`,
+  `capture_log` and `formatters` are not settable, since these
+  are required for ATAM4Ex to work.
+
+  """
   @spec init(opts :: Keyword.t()) :: {async_modules :: [module], sync_modules :: [module]}
   def init(opts) do
     opts =
@@ -68,7 +75,7 @@ defmodule ATAM4Ex.ExUnit do
   `test_helper.exs`: it doesn't matter that `test_helper.exs` calls `ExUnit.run/0`,
   since we've already started the server ourselves, so nothing will happen.
 
-  > Note that running this function more than once achieves nothing, since Elixir
+  > Note that running this function more than once returns empty lists, since Elixir
   will not load (compile) the modules again, and thus no calls will be made to the
   `ExUnit` server. That's why we have to get the tests from the server and stash them
   away.

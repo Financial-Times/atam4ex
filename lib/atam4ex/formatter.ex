@@ -73,8 +73,8 @@ defmodule ATAM4Ex.Formatter do
     {:noreply, %{state | excluded_counter: state.excluded_counter + 1}}
   end
 
-  def handle_cast(_msg, state) do
-    # Logger.debug(fn -> "handle_cast: Received #{inspect msg}" end)
+  def handle_cast(msg, state) do
+    Logger.debug(fn -> "handle_cast: Received #{inspect msg}" end)
     {:noreply, state}
   end
 
