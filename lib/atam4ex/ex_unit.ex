@@ -1,7 +1,6 @@
 defmodule ATAM4Ex.ExUnit do
   @moduledoc """
   Integration with `ExUnit.
-
   """
 
   @type summary :: %{
@@ -75,7 +74,7 @@ defmodule ATAM4Ex.ExUnit do
   `test_helper.exs`: it doesn't matter that `test_helper.exs` calls `ExUnit.run/0`,
   since we've already started the server ourselves, so nothing will happen.
 
-  > Note that running this function more than once returns empty lists, since Elixir
+  > Note that running this function more than once returns empty list, since Elixir
   will not load (compile) the modules again, and thus no calls will be made to the
   `ExUnit` server. That's why we have to get the tests from the server and stash them
   away.
@@ -90,7 +89,7 @@ defmodule ATAM4Ex.ExUnit do
       |> Enum.filter(fn path -> String.ends_with?(path, "_test.exs") end)
       |> Enum.map(fn path -> Path.join([test_dir, path]) end)
 
-    Kernel.ParallelCompiler.require(tests, each_file: fn f -> IO.inspect(f) end)
+    Kernel.ParallelCompiler.require(tests)
 
     modules_loaded()
 
