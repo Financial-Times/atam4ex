@@ -41,9 +41,11 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
 
   def send_category(conn, category) do
     results = ATAM4Ex.Collector.results(String.to_existing_atom(category))
+
     case results do
       %{status: :too_early} ->
         send_too_early(conn)
+
       _ ->
         send_json(conn, format(results))
     end
@@ -51,9 +53,11 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
 
   def send_all(conn) do
     results = ATAM4Ex.Collector.results()
+
     case results do
       %{status: :too_early} ->
         send_too_early(conn)
+
       _ ->
         send_json(conn, format(results))
     end
@@ -62,7 +66,7 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
   def send_json(conn, data) do
     conn
     |> put_resp_content_type("application/json")
-    |> send_resp(200, Poison.encode!(data))
+    |> send_resp(200, Jason.encode!(data))
   end
 
   def send_too_early(conn) do
@@ -78,6 +82,7 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
 
   def to_schema(%ExUnit.Test{name: test_name, case: test_case, tags: tags, state: state}) do
     passed = to_pass(state)
+
     %{
       "testClass" => test_case,
       "testName" => test_name,
@@ -89,5 +94,4 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
   def to_pass(nil), do: true
   def to_pass(%{skip: _}), do: true
   def to_pass(_), do: false
-
 end

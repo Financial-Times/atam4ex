@@ -38,7 +38,9 @@ defmodule ATAM4Ex do
 
     {async_cases, sync_cases} = ATAM4Ex.ExUnit.init(ex_unit_init_options)
 
-    if(length(async_cases) + length(sync_cases) == 0, do: Logger.warn(fn -> "There are no tests to run." end))
+    if(length(async_cases) + length(sync_cases) == 0,
+      do: Logger.warn(fn -> "There are no tests to run." end)
+    )
 
     struct(
       %__MODULE__{
@@ -64,10 +66,12 @@ defmodule ATAM4Ex do
 
     web_server_spec = ATAM4Ex.Web.server_spec(config.server)
 
-    children = web_server_spec ++ [
-      supervisor(ATAM4Ex.TestSuper, [config]),
-      worker(ATAM4Ex.Collector, [])
-    ]
+    children =
+      web_server_spec ++
+        [
+          supervisor(ATAM4Ex.TestSuper, [config]),
+          worker(ATAM4Ex.Collector, [])
+        ]
 
     children = do_child_specs_callback(callback, children)
 
@@ -88,7 +92,7 @@ defmodule ATAM4Ex do
       initial_delay_ms: opts[:initial_delay_ms] || 5000,
       period_ms: opts[:period_ms] || 60_000,
       timeout_ms: opts[:timeout_ms] || 60_000,
-      server: Keyword.get(opts, :server, [port: 8080])
+      server: Keyword.get(opts, :server, port: 8080)
     }
   end
 
@@ -99,5 +103,4 @@ defmodule ATAM4Ex do
     |> Keyword.merge(Keyword.take(opts, [:test_dir]))
     |> Keyword.drop([:autorun, :formatters, :capture_log])
   end
-
 end

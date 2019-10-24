@@ -1,12 +1,12 @@
 defmodule SimpleTest do
   use ExUnit.Case
 
-  @tag category: :pass
+  @tag category: :these_pass
   test "simple pass" do
     assert true
   end
 
-  @tag category: :fail
+  @tag category: :these_fail
   test "simple fail" do
     assert false
   end
@@ -18,6 +18,10 @@ defmodule SimpleTest do
 
   @tag category: :dev_only
   test "local dev-only test" do
+    assert false
+  end
+
+  test "untagged test" do
     assert false
   end
 

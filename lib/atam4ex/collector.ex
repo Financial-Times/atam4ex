@@ -11,15 +11,14 @@ defmodule ATAM4Ex.Collector do
 
   @type t :: %ATAM4Ex.Collector{results: map, status: status}
 
-
   @doc "all results"
-  @spec results() :: __MODULE__.t
+  @spec results() :: __MODULE__.t()
   def results() do
     GenServer.call(__MODULE__, :results)
   end
 
   @doc "results for a given category"
-  @spec results(category :: atom()) :: __MODULE__.t
+  @spec results(category :: atom()) :: __MODULE__.t()
   def results(category) do
     GenServer.call(__MODULE__, {:results, category})
   end
@@ -38,13 +37,18 @@ defmodule ATAM4Ex.Collector do
   end
 
   def handle_cast({:suite_finished, run_us, counter, results}, state) do
-    Logger.info(fn -> "#{__MODULE__} Suite finished in #{System.convert_time_unit(run_us, :microseconds, :milliseconds)}ms; #{inspect counter}" end)
+    Logger.info(fn ->
+      "#{__MODULE__} Suite finished in #{
+        System.convert_time_unit(run_us, :microsecond, :millisecond)
+      }ms; #{inspect(counter)}"
+    end)
 
-    state = case counter do
-      %{failed: n} when n > 0 -> %{state | status: :failures}
-      %{invalid: n} when n > 0 -> %{state | status: :failures}
-      _other -> %{state | status: :all_ok}
-    end
+    state =
+      case counter do
+        %{failed: n} when n > 0 -> %{state | status: :failures}
+        %{invalid: n} when n > 0 -> %{state | status: :failures}
+        _other -> %{state | status: :all_ok}
+      end
 
     {:noreply, %{state | results: results, duration_us: run_us}}
   end
@@ -65,14 +69,15 @@ defmodule ATAM4Ex.Collector do
       end)
       |> Map.new()
 
-    has_failures = Enum.any?(tests, fn
-      {_key, %{state: {:failed, _}}} -> true
-      {_key, %{state: {:invalid, _}}} -> true
-      _ -> false
-    end)
+    has_failures =
+      Enum.any?(tests, fn
+        {_key, %{state: {:failed, _}}} -> true
+        {_key, %{state: {:invalid, _}}} -> true
+        _ -> false
+      end)
+
     has_failures = if(has_failures, do: :failures, else: :all_ok)
 
     {:reply, struct(__MODULE__, results: tests, status: has_failures), state}
   end
-
 end

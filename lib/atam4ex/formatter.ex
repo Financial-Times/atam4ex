@@ -9,7 +9,6 @@ defmodule ATAM4Ex.Formatter do
 
   @doc "Initialized by `ExUnit.EventManager` passing `ExUnit` opts."
   def init(opts) do
-
     state = %{
       seed: opts[:seed],
       trace: opts[:trace],
@@ -34,6 +33,7 @@ defmodule ATAM4Ex.Formatter do
       excluded: state.excluded_counter,
       invalid: state.invalid_counter
     }
+
     state.collector.suite_finished(run_us, counter, state.results)
     {:noreply, state}
   end
@@ -44,7 +44,8 @@ defmodule ATAM4Ex.Formatter do
     {:noreply, state}
   end
 
-  def handle_cast({:test_finished, %ExUnit.Test{state: {skipped, _}} = test}, state) when skipped in [:skip, :skipped] do
+  def handle_cast({:test_finished, %ExUnit.Test{state: {skipped, _}} = test}, state)
+      when skipped in [:skip, :skipped] do
     Logger.debug(fn -> "test SKIPPED #{test.name}" end)
     state = record_test(state, test)
 
@@ -79,7 +80,12 @@ defmodule ATAM4Ex.Formatter do
 
   defp record_test(state, test) do
     test = ensure_category(test)
-    %{state | results: Map.put(state.results, {test.case, test.name}, test), test_counter: update_test_counter(state.test_counter, test)}
+
+    %{
+      state
+      | results: Map.put(state.results, {test.case, test.name}, test),
+        test_counter: update_test_counter(state.test_counter, test)
+    }
   end
 
   defp ensure_category(test) do

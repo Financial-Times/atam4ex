@@ -88,7 +88,7 @@ defmodule ATAM4Ex.Application do
         opts
       end
 
-      defoverridable [atam4ex_opts: 1, child_specs: 1]
+      defoverridable atam4ex_opts: 1, child_specs: 1
     end
   end
 end

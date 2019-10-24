@@ -1,12 +1,12 @@
 defmodule ATAM4Ex.YAML do
   @moduledoc "Environment config YAML parsing."
 
-  @doc "Read and post-process YAML file."
+  @doc "Read and post-process YAML file, or raise."
   def read!(path) do
     Application.ensure_all_started(:yamerl)
 
     path
-    |> YamlElixir.read_from_file()
+    |> YamlElixir.read_from_file!()
     |> walk()
   end
 
@@ -35,7 +35,7 @@ defmodule ATAM4Ex.YAML do
   """
   @spec walk(data) :: map when data: map
   @spec walk(data) :: list when data: list
-  @spec walk(data) :: String.t when data: String.t
+  @spec walk(data) :: String.t() when data: String.t()
   @spec walk(data) :: number when data: number
   def walk(data)
 
