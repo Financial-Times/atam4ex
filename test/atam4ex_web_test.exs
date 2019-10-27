@@ -62,9 +62,12 @@ defmodule ATAM4ExHttpServerTest do
 
       assert {:ok, res} = :httpc.request(String.to_charlist("http://localhost:8081/tests"))
       assert {{_, 200, _}, _headers, body} = res
-      body = body
+
+      body =
+        body
         |> to_string()
         |> Jason.decode!()
+
       assert body["status"] == "FAILURES"
       assert body["tests"]
       assert length(body["tests"]) == 5

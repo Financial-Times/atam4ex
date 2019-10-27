@@ -48,7 +48,7 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
   end
 
   @impl Plug
-  def call(conn = %{path_info: [category]}, %{categories: categories}) do
+  def call(%{path_info: [category]} = conn, %{categories: categories}) do
     if category in categories do
       send_category(conn, category)
     else
@@ -57,7 +57,7 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
   end
 
   @impl Plug
-  def call(conn = %{path_info: []}, _config) do
+  def call(%{path_info: []} = conn, _config) do
     send_all(conn)
   end
 

@@ -61,7 +61,7 @@ defmodule ATAM4Ex do
   or a 1-arg anonymous function, or `{m, f, a}` tuple; this function will be called
   with the list of supervisor specs, and can amend this list.
   """
-  def start_link(config = %ATAM4Ex{}, callback \\ nil) do
+  def start_link(%ATAM4Ex{} = config, callback \\ nil) do
     import Supervisor.Spec, warn: false
 
     web_server_spec = ATAM4Ex.Web.server_spec(config.server)
