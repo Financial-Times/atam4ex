@@ -10,11 +10,13 @@ which makes the acceptance tests more robust, avoiding memory leaks and stateful
 ## Synopsis
 
 Tests are written as standard [ExUnit](https://hexdocs.pm/ex_unit/ExUnit.html) tests, and
-thus may be run stand-alone with `mix test --no-start`, as well as under the ATAM4Ex supervisor.
+thus may be run stand-alone with `mix test`, as well as under the ATAM4Ex supervisor. 
 
-An application which is host to the acceptance tests starts the ATAM4Ex supervisor tree, 
-optionally with a Cowboy/Plug web-server, either using `ATAM4Ex.init/1` and `ATAM4Ex.start_link/1`,
-giving it full control over the configuration and start-up, or by using the `ATAM4Ex.Application` module in its registered application module:
+> Tests are loaded from the standard `test` directory by default, and must be match pattern `*_test.exs`.
+
+An application which is host to the acceptance tests starts the ATAM4Ex supervisor tree either 
+using `ATAM4Ex.init/1` and `ATAM4Ex.start_link/1`, or by using the `ATAM4Ex.Application`
+module in its registered `Application` module:
 
 ```elixir
 defmodule MyAppATs do
@@ -22,20 +24,8 @@ defmodule MyAppATs do
 end
 ```
 
-The `otp_app` option allows specifying the root of the configuration, in this case the ATAM4Ex configuration will be loaded (e.g. via `config.exs`) such that it is available via 
-`Application.get_env(:myapp_at, :atam4ex)`: 
-
-```elixir
-config :myapp_at, :atam4ex,
-    initial_delay_ms: 10_000,
-    period_ms: 30_000,
-    timeout_ms: 120_000,
-    ex_unit: [max_cases: 2, timeout: 5_000, exclude: [category: :local]]
-```
-
-For details of all the configuration options, see the `ATAM4Ex` module.
-
-The application can then be registered in `mix.exs` so that it starts when the BEAM VM starts:
+This makes the `MyAppATs` module a startable application which can be registered in 
+`mix.exs` so that it starts when the BEAM VM starts:
 
 ```elixir
 def application do
@@ -46,22 +36,57 @@ def application do
 end
 ```
 
-> Note that ATAM4Ex's own `mix.exs` has an `extra_applications` dependency on `ex_unit` - this is important for releases, else the `ExUnit` modules will not be included, since they are normally only for testing in `:test`. You don't need to put anything in your app's `mix.exs`, the release mechanism (e.g. [Distillery](https://github.com/bitwalker/distillery)) should take care of it.
+> Note that ATAM4Ex's own `mix.exs` has an `extra_applications` dependency on `ex_unit` - this is important for releases, else the `ExUnit` modules will not be included, since they are normally only for testing in `:test`. You don't need to put anything in your app's `mix.exs`, the release mechanism (e.g. [Distillery](https://github.com/bitwalker/distillery), or `mix release`) should take care of it.
 
-You can then start your application using `mix` with (`--no-halt` keeps the application running to run the tests):
+### Configuration
+
+The `otp_app` option specified to the `ATAM4Ex.Application` module allows specifying the root of 
+the configuration, in this case the ATAM4Ex configuration will be loaded (e.g. via `config.exs`) 
+such that it is available via `Application.get_env(:myapp_at, :atam4ex)`: 
+
+```elixir
+config :myapp_at, :atam4ex,
+    initial_delay_ms: 10_000,
+    period_ms: 30_000,
+    timeout_ms: 120_000,
+    ex_unit: [max_cases: 2, timeout: 5_000, exclude: [category: :local]]
+```
+
+> For details of all the configuration options, see the documentation for the `ATAM4Ex` module.
+
+You can also specify configuration by providing a `atam4ex_opts/1` function in the
+application module; this receives any configuration extracted from `config.exs` as a 
+keyword list, and should return a keyword list containing an adjusted configuration:
+
+```elixir
+defmodule MyAppATs do
+    use ATAM4Ex.Application, otp_app: :myapp_at
+
+    def atam4ex_opts(opts) do
+      Keyword.merge(opts, [period_ms: 60000])
+    end
+end
+```
+
+This function executes at run-time, so can be used to parse environment variables etc.
+
+### Starting the scheduled tests
+
+You can then start your application using `mix` with: 
 ```
 $ mix run --no-halt
 ```
+(`--no-halt` keeps the application running long enough to schedule the tests)
 
 or in IEx with:
 ```
 iex -S mix
 ```
 
-Test results will also be reported, as normal, to the console, so details of failures etc. appear in the application logs.
+Test results will be reported, as normal, to the console, so details of failures etc. appear in the application logs.
 
-Test results can also be obtained programatically by calling `ATAM4Ex.Collector.results/0` (or `ATAM4Ex.Collector.results/1`),
-which is what the Web Server does.
+Test results can also be obtained programatically by calling `ATAM4Ex.Collector.results/0` 
+(or `ATAM4Ex.Collector.results/1`), which is what the Web Server does.
 
 ## Default Web server
 
@@ -74,7 +99,7 @@ config :myapp_at, :atam4ex,
   server: [port: 8443, scheme: :https, certfile: "/path/to/certfile", keyfile: "/path/to/keyfile"]
 ```
 
-> See `Plug.Adapters.Cowboy` module for details of all the options, including those for running under TLS.
+> See [`Plug.Cowboy`](https://hexdocs.pm/plug_cowboy/Plug.Cowboy.html) for details of all the options, including those for running under TLS.
 
 The server responds to requests on the `/tests` path.
 
@@ -116,33 +141,39 @@ will be placed in the `:default` category.
 ## Test Environment
 
 ATAM4Ex supports loading a test environment (AKA configuration) via YAML files. This optional
-feature allows different configurations to be used for various run-time environments, e.g. host names, and api-keys are likely to be different in staging and production environments, and is more flexible
-than using `config.exs` (which is intended for build environments, not deployment environments).
+feature allows different configurations to be used for various run-time environments, e.g. host names, 
+and api-keys are likely to be different in staging and production environments, and is more flexible
+than using `config.exs` (which is intended for build environments, not deployment environments), and
+may be more convenient than using `releases.exs` because of the ability to provide values for 
+different run-time environments, and do type conversions.
 
 The `ATAM4Ex.Environment` module can load YAML files, by default from an `env` directory 
-(which should be packaged with your app). Usually you would do this in your `test_helper.exs` file:
+(which should be packaged with your app release). Usually you would do this in your `test_helper.exs` file:
 
 ```elixir
-# load environment specified in APP_ENV, or local
-ATAM4Ex.Environment.load_environment!(System.get_env("APP_ENV") || :local)
+# load environment specified in "${APP_ENV}.yaml", or "development.yaml"
+ATAM4Ex.Environment.load_environment!(System.get_env("APP_ENV") || :development)
 ExUnit.start
 ```
 
-Tests can then access the environment settings via `ATAM4Ex.Environment.config/0` (or `config/1`) at any point in their execution, e.g. during `setup` to provide a `context`, or during the test itself.
+Tests can then access the environment settings via `ATAM4Ex.Environment.config/0` (or `config/1`) at any point in their execution, e.g. during `setup/1` to provide a `context`, or during the test itself.
 
 
-The YAML parser provides a mechanism for resolving system environment variables via `:env` keys, e.g.
-if your `env/production.yaml` file contained:
+The YAML parser provides a mechanism for resolving system environment variables 
+via `:env` keys, e.g. if your `env/production.yaml` file contained:
 
 ```yaml
 system_url: https://my-system-prod
 system_api_key:
     :env: SYSTEM_API_KEY
+server_port:
+    :env: PORT
+    :as: integer
 ```
 
-`ATAM4Ex.Environment.config(:system_api_key)` will be resolved at load time to be the value of the `SYSTEM_API_KEY` environment variable, replacing it's original map structure.
+`ATAM4Ex.Environment.config(:system_api_key)` will be resolved at load time to be the value of the `SYSTEM_API_KEY` environment variable, and `PORT` would be parsed as an integer and be available via `ATAM4Ex.Environment.config(:server_port)`.
 
-> Note that for convenience, map keys in the YAML will be converted to atoms.
+> Note that for convenience, map keys in the YAML are converted to atoms.
 
 ## Installation
 
@@ -151,7 +182,7 @@ For the bleeding edge, latest and most unstable version, add to your `mix.exs` f
 ```elixir
 def deps do
   [
-    {:atam4ex, gitub: "Financial-Times/atam4ex"}
+    {:atam4ex, github: "Financial-Times/atam4ex"}
   ]
 end
 ```
@@ -161,20 +192,19 @@ end
 Most of ATAM4Ex's dependencies are **optional**; if you want to use the web-server, 
 or parse YAML, you'll need to add explicit dependencies to your app's `mix.exs` file.
 
-ATAM4Ex needs `cowboy`, `plug` and `poison` for running its 'built-in' web-server, and 
+ATAM4Ex needs `plug_cowboy` and `jason` for running its 'built-in' web-server, and 
 `yaml_elixir` for `ATAM4Ex.Environment`. If you aren't using one or both of those components, 
 then you can leave the corresponding deps out.
 
-Take a look at this project's `mix.exs` for compatible versions of the optional compoments, 
+Take a look at this project's `mix.exs` for compatible versions of the optional components, 
 but as of the time of writing:
 ```
 # for ATAM4Ex.Environment
-{:yaml_elixir, "~> 1.3"},
+{:yaml_elixir, "~> 2.4"},
 
 # for http server (ATAM4Ex.Web etc.)
-{:poison, "~> 3.1"},
-{:plug, "~> 1.4"},
-{:cowboy, "~> 1.0"},
+{:jason, "~> 1.0"},
+{:plug_cowboy, "~> 2.0"},
 ```
 
 ## Building a Release with Distillery
@@ -184,8 +214,7 @@ want to make a stand-alone release, rather than relying on `mix run --no-halt`.
 
 Here's how:
 
-1. You need to copy your tests and environment files to the release, else it won't be able to find them. Assuming you are using
-the default `test` and `env` directories, add `set overlays` entries to your `rel/config.exs`:
+1. You need to copy your tests and environment files to the release, else it won't be able to find them. Assuming you are using the default `test` and `env` directories, add `set overlays` entries to your `rel/config.exs`:
 
 ```elixir
 release :myapp_at do
@@ -203,3 +232,40 @@ This copies the `test` and `env` dirs to the `releases` directory, see [Overlays
 
 
 That's it. Otherwise it's a standard Elixir application release.
+
+
+## Building a release with Elixir 1.9
+
+Elixir's `mix release` command packages your application in the `_build/${MIX_ENV}/dev/rel/` directory.
+
+While Distillary supports overlays, you can achieve the same effect using release `steps`, which are defined 
+in your `mix.exs` file. You will need to write a function to copy the `test` and `env` directories to 
+the release, e.g.
+
+```elixir
+  def project do
+    ...
+    releases: [
+      default: [
+        steps: [
+          :assemble,
+          &copy_test_files/1,
+        ]
+      ]
+    ]
+  end
+
+  defp copy_test_files(release) do
+    ["test", "env"]
+    |> Enum.each(fn src ->
+      dest = Path.join([release.path, src])
+      File.mkdir_p!(dest)
+      File.cp_r!(src, dest)
+    end)
+    release
+  end
+```
+
+If you are using Docker, you could alternatively copy the test files using your `Dockerfile`;
+note that unless you specify an absolute `test_dir` (or `env_dir`), tests will always be looked 
+for relative to the current working directory, i.e. `./test/*_test.exs`.

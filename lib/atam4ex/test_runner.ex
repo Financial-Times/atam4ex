@@ -22,12 +22,12 @@ defmodule ATAM4Ex.TestSuper do
     # Logger.debug(fn -> "#{__MODULE__}.init/1 #{inspect self()}" end)
 
     children = [
-      worker(ATAM4Ex.TestRunner, [config]) # supply config as first argument for Fettle.Runner workers
+      # supply config as first argument for Fettle.Runner workers
+      worker(ATAM4Ex.TestRunner, [config])
     ]
 
     supervise(children, strategy: :one_for_one)
   end
-
 end
 
 defmodule ATAM4Ex.TestRunner do
@@ -52,7 +52,11 @@ defmodule ATAM4Ex.TestRunner do
 
   def init([config = %ATAM4Ex{}, parent_pid]) do
     # Logger.debug(fn -> "#{__MODULE__}.init/1 #{inspect self()} (parent #{inspect parent_pid}" end)
-    if(parent_pid != self(), do: schedule_first_test_run(config), else: Logger.warn(fn -> "Non-Supervised start-up" end))
+    if(parent_pid != self(),
+      do: schedule_first_test_run(config),
+      else: Logger.warn(fn -> "Non-Supervised start-up" end)
+    )
+
     {:ok, config}
   end
 
@@ -73,11 +77,14 @@ defmodule ATAM4Ex.TestRunner do
   def handle_info(:scheduled_run, %ATAM4Ex{} = state) do
     # Logger.debug(fn -> "Starting scheduled test run" end)
     parent = self()
-    task = spawn_monitor(fn ->
-      # Logger.debug(fn -> "Running tests #{inspect self()}" end)
-      summary = run_tests(state)
-      send(parent, {:test_run_result, summary})
-    end)
+
+    task =
+      spawn_monitor(fn ->
+        # Logger.debug(fn -> "Running tests #{inspect self()}" end)
+        summary = run_tests(state)
+        send(parent, {:test_run_result, summary})
+      end)
+
     {:noreply, %{state | runner_task: task}, state.timeout_ms}
   end
 
@@ -87,7 +94,7 @@ defmodule ATAM4Ex.TestRunner do
   end
 
   def handle_info(:timeout, %ATAM4Ex{runner_task: {pid, _ref}} = state) do
-    Logger.info(fn -> "Test run timed out in #{inspect pid}" end)
+    Logger.info(fn -> "Test run timed out in #{inspect(pid)}" end)
 
     Process.exit(pid, :kill)
 
@@ -115,7 +122,7 @@ defmodule ATAM4Ex.TestRunner do
   @doc false
   def handle_info({:DOWN, _ref, :process, pid, reason}, %ATAM4Ex{period_ms: ms} = state) do
     # sub-process died, reschedule check
-    Logger.warn(fn -> "Test run process #{inspect pid} died: #{inspect reason}" end)
+    Logger.warn(fn -> "Test run process #{inspect(pid)} died: #{inspect(reason)}" end)
 
     schedule_test_run(ms)
 
@@ -130,5 +137,4 @@ defmodule ATAM4Ex.TestRunner do
   def run_tests(%{async_cases: async_cases, sync_cases: sync_cases}) do
     ATAM4Ex.ExUnit.run(async_cases, sync_cases)
   end
-
 end

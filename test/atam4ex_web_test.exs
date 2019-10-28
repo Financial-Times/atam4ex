@@ -1,9 +1,10 @@
-defmodule ATAM4ExAppTest do
+defmodule ATAM4ExHttpServerTest do
   use ExUnit.Case
+  @moduletag :http_server
 
   setup_all do
     config = [
-      server: false,
+      server: [port: 8081],
       initial_delay_ms: 0,
       period_ms: 1000,
       test_dir: "fixtures/simple",
@@ -32,6 +33,8 @@ defmodule ATAM4ExAppTest do
       {:ok, pid} = MYATs.start(:normal, [])
       assert Process.alive?(pid)
 
+      :inets.start()
+
       assert_receive :atam4ex_opts, 100, "Expected overridden atam4ex_opts/1 to be called"
       assert_receive :child_specs, 100, "Expected overridden child_specs/1 to be called"
 
@@ -56,6 +59,18 @@ defmodule ATAM4ExAppTest do
 
       assert %{status: :failures, results: all_results} = ATAM4Ex.Collector.results()
       assert length(Map.keys(all_results)) == 5
+
+      assert {:ok, res} = :httpc.request(String.to_charlist("http://localhost:8081/tests"))
+      assert {{_, 200, _}, _headers, body} = res
+
+      body =
+        body
+        |> to_string()
+        |> Jason.decode!()
+
+      assert body["status"] == "FAILURES"
+      assert body["tests"]
+      assert length(body["tests"]) == 5
 
       Supervisor.stop(pid)
     end)

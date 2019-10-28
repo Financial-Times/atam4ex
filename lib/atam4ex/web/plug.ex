@@ -1,6 +1,6 @@
 defmodule ATAM4Ex.ATAM4JCompatiblePlug do
   @moduledoc """
-  Plug to serve test results in ATAM4J compatible JSON format.
+  Plug to serve test results in [ATAM4J](https://github.com/atam4j/atam4j) compatible JSON format.
 
   ## Endpoints
   * `/tests` -  results for all tests.
@@ -8,6 +8,28 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
 
   Categories must be configured in `init/1`; the `:default` category is
   always added to the list.
+
+  The serialization format looks like the following:
+
+  ```json
+  {
+    "tests": [
+      {
+        "passed": false,
+        "testCategory": "critical",
+        "testClass": "MyATAM.SomeTest",
+        "testName": "test_a"
+      }
+    ],
+    "status": "FAILURES"
+  }
+  ```
+
+  The `status` property will be:
+  * `FAILURES` if there are any test failures.
+  * `ALL_OK` if all tests pass.
+  * `TOO_EARLY` if tests haven't run to completion yet.
+
   """
 
   @behaviour Plug
@@ -26,7 +48,7 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
   end
 
   @impl Plug
-  def call(conn = %{path_info: [category]}, %{categories: categories}) do
+  def call(%{path_info: [category]} = conn, %{categories: categories}) do
     if category in categories do
       send_category(conn, category)
     else
@@ -35,15 +57,17 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
   end
 
   @impl Plug
-  def call(conn = %{path_info: []}, _config) do
+  def call(%{path_info: []} = conn, _config) do
     send_all(conn)
   end
 
   def send_category(conn, category) do
     results = ATAM4Ex.Collector.results(String.to_existing_atom(category))
+
     case results do
       %{status: :too_early} ->
         send_too_early(conn)
+
       _ ->
         send_json(conn, format(results))
     end
@@ -51,9 +75,11 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
 
   def send_all(conn) do
     results = ATAM4Ex.Collector.results()
+
     case results do
       %{status: :too_early} ->
         send_too_early(conn)
+
       _ ->
         send_json(conn, format(results))
     end
@@ -62,7 +88,7 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
   def send_json(conn, data) do
     conn
     |> put_resp_content_type("application/json")
-    |> send_resp(200, Poison.encode!(data))
+    |> send_resp(200, Jason.encode!(data))
   end
 
   def send_too_early(conn) do
@@ -78,6 +104,7 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
 
   def to_schema(%ExUnit.Test{name: test_name, case: test_case, tags: tags, state: state}) do
     passed = to_pass(state)
+
     %{
       "testClass" => test_case,
       "testName" => test_name,
@@ -89,5 +116,4 @@ defmodule ATAM4Ex.ATAM4JCompatiblePlug do
   def to_pass(nil), do: true
   def to_pass(%{skip: _}), do: true
   def to_pass(_), do: false
-
 end

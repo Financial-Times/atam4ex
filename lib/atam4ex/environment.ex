@@ -80,10 +80,12 @@ defmodule ATAM4Ex.Environment do
 
   * `env_dir` - base-dir for loading environment files, default `env`.
   """
-  @spec load_environment!(environment_id :: String.t | atom, opts :: Keyword.t) :: map | no_return
+  @spec load_environment!(environment_id :: String.t() | atom, opts :: Keyword.t()) ::
+          map | no_return
   def load_environment!(environment_id, opts \\ [])
 
-  def load_environment!("" <> environment_id, opts), do: load_environment!(String.to_atom(environment_id), opts)
+  def load_environment!("" <> environment_id, opts),
+    do: load_environment!(String.to_atom(environment_id), opts)
 
   def load_environment!(environment_id, opts) when is_atom(environment_id) do
     env_dir = opts[:env_dir] || "env"
