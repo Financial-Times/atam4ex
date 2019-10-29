@@ -63,11 +63,13 @@ defmodule ATAM4Ex.YAML do
   def key("" <> key), do: String.to_atom(key)
 
   def env!(%{":env" => name, ":as" => type}) do
-    val = case System.get_env(name) do
-      nil -> raise ArgumentError, "ENV var #{name} is missing"
-      "" -> raise ArgumentError, "ENV var #{name} is empty string"
-      val -> val
-    end
+    val =
+      case System.get_env(name) do
+        nil -> raise ArgumentError, "ENV var #{name} is missing"
+        "" -> raise ArgumentError, "ENV var #{name} is empty string"
+        val -> val
+      end
+
     convert!(name, val, String.downcase(type))
   end
 
@@ -82,8 +84,11 @@ defmodule ATAM4Ex.YAML do
   @spec convert!(binary, binary, binary) :: number
   def convert!(name, val, "integer") do
     case Integer.parse(val) do
-      :error -> raise ArgumentError, "ENV var #{name} cannot be converted to an integer: \"#{val}\""
-      {val, _} -> val
+      :error ->
+        raise ArgumentError, "ENV var #{name} cannot be converted to an integer: \"#{val}\""
+
+      {val, _} ->
+        val
     end
   end
 
@@ -93,5 +98,4 @@ defmodule ATAM4Ex.YAML do
       {val, _} -> val
     end
   end
-
 end

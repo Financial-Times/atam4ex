@@ -57,7 +57,7 @@ defmodule ATAM4Ex.Collector do
     {:reply, state, state}
   end
 
-  def handle_call({:results, _tag}, _from, %{status: :too_early} = state ) do
+  def handle_call({:results, _tag}, _from, %{status: :too_early} = state) do
     {:reply, state, state}
   end
 

@@ -18,6 +18,7 @@ defmodule YamlTest do
       :env: "YYYY"
       :as: "integer"
     '''
+
     System.put_env("XXXX", "yyyy")
     System.put_env("YYYY", "10.5")
 
@@ -32,6 +33,7 @@ defmodule YamlTest do
       :env: "ZZZZ"
       :as: "float"
     '''
+
     System.put_env("ZZZZ", "abc")
     assert_raise ArgumentError, fn -> result = ATAM4Ex.YAML.walk!(yaml) end
   end
