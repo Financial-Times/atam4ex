@@ -89,7 +89,7 @@ defmodule ATAM4Ex.ExUnit do
       |> Enum.filter(fn path -> String.ends_with?(path, "_test.exs") end)
       |> Enum.map(fn path -> Path.join([test_dir, path]) end)
 
-    Kernel.ParallelCompiler.require(tests)
+    {:ok, _, _} = Kernel.ParallelCompiler.require(tests)
 
     modules_loaded()
 
@@ -103,10 +103,10 @@ defmodule ATAM4Ex.ExUnit do
     test_helper = Path.join([test_dir, "atam4ex_test_helper.exs"])
 
     if File.exists?(test_helper) do
-      Kernel.ParallelCompiler.require([test_helper])
+      {:ok, _, _} = Kernel.ParallelCompiler.require([test_helper])
     else
       test_helper = Path.join([test_dir, "test_helper.exs"])
-      Kernel.ParallelCompiler.require([test_helper])
+      {:ok, _, _} = Kernel.ParallelCompiler.require([test_helper])
     end
   end
 
@@ -122,47 +122,23 @@ defmodule ATAM4Ex.ExUnit do
     |> Enum.to_list()
   end
 
-  if Version.match?(System.version(), ">= 1.6.0") do
-    # Elixir >= 1.6.0
-    defp modules_loaded() do
-      ExUnit.Server.modules_loaded()
-    end
+  defp modules_loaded() do
+    ExUnit.Server.modules_loaded()
+  end
 
-    defp take_sync_modules() do
-      ExUnit.Server.take_sync_modules()
-    end
+  defp take_sync_modules() do
+    ExUnit.Server.take_sync_modules()
+  end
 
-    defp take_async_modules(count) do
-      ExUnit.Server.take_async_modules(count)
-    end
+  defp take_async_modules(count) do
+    ExUnit.Server.take_async_modules(count)
+  end
 
-    defp install_async_modules(modules) do
-      Enum.each(modules, &ExUnit.Server.add_async_module/1)
-    end
+  defp install_async_modules(modules) do
+    Enum.each(modules, &ExUnit.Server.add_async_module/1)
+  end
 
-    defp install_sync_modules(modules) do
-      Enum.each(modules, &ExUnit.Server.add_sync_module/1)
-    end
-  else
-    # Elixir < 1.6.0
-    defp modules_loaded() do
-      ExUnit.Server.cases_loaded()
-    end
-
-    defp take_sync_modules() do
-      ExUnit.Server.take_sync_cases()
-    end
-
-    defp take_async_modules(count) do
-      ExUnit.Server.take_async_cases(count)
-    end
-
-    defp install_async_modules(modules) do
-      Enum.each(modules, &ExUnit.Server.add_async_case/1)
-    end
-
-    defp install_sync_modules(modules) do
-      Enum.each(modules, &ExUnit.Server.add_sync_case/1)
-    end
+  defp install_sync_modules(modules) do
+    Enum.each(modules, &ExUnit.Server.add_sync_module/1)
   end
 end
